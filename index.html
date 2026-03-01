@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electricity Bill Calculator | 2025 Rates</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151a35;
+            --text-primary: #ffffff;
+            --text-secondary: #a8b3cf;
+            --accent: #667eea;
+            --accent-secondary: #764ba2;
+            --accent-hover: #5568d3;
+            --border: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(21, 26, 53, 0.6);
+            --shadow: rgba(102, 126, 234, 0.2);
+            --glow: rgba(102, 126, 234, 0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8f9ff;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6c7293;
+            --accent: #667eea;
+            --accent-secondary: #764ba2;
+            --accent-hover: #5568d3;
+            --border: rgba(102, 126, 234, 0.15);
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --shadow: rgba(102, 126, 234, 0.15);
+            --glow: rgba(102, 126, 234, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.5s ease, color 0.5s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+            animation: gradientShift 15s ease infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(5%, 5%) rotate(5deg); }
+        }
+
+        /* Header & Navigation */
+        header {
+            background: rgba(21, 26, 53, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        [data-theme="light"] header {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: '⚡';
+            -webkit-text-fill-color: var(--accent);
+            font-size: 1.8rem;
+            filter: drop-shadow(0 0 10px var(--glow));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .theme-toggle {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--glow);
+        }
+
+        /* Hero Section */
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 1.5rem 4rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.3rem;
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Calculator Section */
+        .calculator-section {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .calculator-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px var(--shadow), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out 0.5s both;
+        }
+
+        .calculator-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+            opacity: 0.3;
+            animation: rotate 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .calculator-card h2 {
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        [data-theme="light"] .form-group select,
+        [data-theme="light"] .form-group input {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px var(--shadow), 0 0 20px var(--glow);
+            transform: translateY(-2px);
+        }
+
+        [data-theme="light"] .form-group select:focus,
+        [data-theme="light"] .form-group input:focus {
+            background: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            color: white;
+            box-shadow: 0 4px 15px var(--shadow);
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px var(--glow);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        /* Result Section */
+        .result-card {
+            margin-top: 2.5rem;
+            padding: 2.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            border-radius: 20px;
+            color: white;
+            display: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px var(--glow);
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .result-card.show {
+            display: block;
+            animation: slideInScale 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideInScale {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .result-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+        }
+
+        .breakdown {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 1.1rem;
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Info Section */
+        .info-section {
+            max-width: 1200px;
+            margin: 6rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .info-section h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 12px 40px var(--glow);
+            border-color: var(--accent);
+        }
+
+        .info-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .info-card h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .info-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .rate-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            margin-top: 1rem;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 15px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .rate-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--glow);
+        }
+
+        /* Instructions Section */
+        .instructions {
+            max-width: 900px;
+            margin: 5rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .instructions h2 {
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .instructions ol {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            line-height: 2;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .instructions li {
+            margin-bottom: 1.25rem;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .instructions li::marker {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 4rem 1.5rem 2rem;
+            margin-top: 6rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .footer-section a::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent);
+            padding-left: 1.5rem;
+        }
+
+        .footer-section a:hover::before {
+            opacity: 1;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .calculator-card {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">⚡ Bill Calculator</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#calculator">Calculator</a></li>
+                <li><a href="#rates">Rates</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+            <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+        </nav>
+    </header>
+
+    <section class="hero" id="home">
+        <h1>Electricity Bill Calculator</h1>
+        <p>Calculate your electricity bill accurately with 2025 rates • Fast, precise, and easy to use</p>
+    </section>
+
+    <section class="calculator-section" id="calculator">
+        <div class="calculator-card">
+            <h2>Calculate Your Bill</h2>
+            
+            <div class="form-group">
+                <label for="consumerType">Select Consumer Type</label>
+                <select id="consumerType">
+                    <option value="">Select Consumer Type</option>
+                    <option value="residential">Residential (LT-A)</option>
+                    <option value="commercial">Commercial (LT-C)</option>
+                    <option value="industrial">Industrial (LT-B)</option>
+                    <option value="agricultural">Agricultural</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="units">Unit (kWh)</label>
+                <input type="number" id="units" placeholder="Enter units consumed" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="load">Load (kW)</label>
+                <input type="number" id="load" placeholder="Enter sanctioned load" min="0" step="0.01">
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetCalculator()">Reset</button>
+                <button class="btn btn-primary" onclick="calculateBill()">Calculate Bill</button>
+            </div>
+
+            <div class="result-card" id="result">
+                <h3>Your Bill Breakdown</h3>
+                <div class="breakdown">
+                    <div class="breakdown-item">
+                        <span>Energy Cost:</span>
+                        <span id="energyCost">৳0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Demand Charge:</span>
+                        <span id="demandCharge">৳0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>VAT (5%):</span>
+                        <span id="vat">৳0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Total Bill:</span>
+                        <span id="totalBill">৳0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="instructions">
+        <h2>How to Calculate Electricity Bill?</h2>
+        <ol>
+            <li>Get the current meter reading in units</li>
+            <li>Subtract current meter reading from previous month's total reading</li>
+            <li>Select the consumer type from the dropdown (Example: For home electricity, select Residential LT-A)</li>
+            <li>Enter the Unit and Load values. Check your bill paper for Load value</li>
+            <li>Click on Calculate Bill</li>
+        </ol>
+    </section>
+
+    <section class="info-section" id="rates">
+        <h2>Electricity Rates Overview</h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 700px; margin: 0 auto 3rem; font-size: 1.1rem;">Understanding the tiered pricing structure helps you manage consumption and save on your monthly bill</p>
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>💡 Low Usage</h3>
+                <p>Perfect for small households with minimal consumption. The lifeline rate ensures affordability for basic needs.</p>
+                <div class="rate-tag">৳4.63 per unit (0-50 units)</div>
+            </div>
+            
+            <div class="info-card">
+                <h3>🏠 Medium Usage</h3>
+                <p>Ideal for average households with standard appliances and moderate electricity consumption.</p>
+                <div class="rate-tag">৳7.20 per unit (76-200 units)</div>
+            </div>
+            
+            <div class="info-card">
+                <h3>⚡ High Usage</h3>
+                <p>For larger households or commercial use with air conditioning and multiple high-power appliances.</p>
+                <div class="rate-tag">৳14.61 per unit (600+ units)</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#calculator">Calculator</a></li>
+                    <li><a href="#rates">Rates</a></li>
+                    <li><a href="#about">About Us</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="#">Tariff Information</a></li>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">Energy Saving Tips</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2026 Bill Calculator. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeButton(newTheme);
+        }
+
+        function updateThemeButton(theme) {
+            const button = document.querySelector('.theme-toggle');
+            button.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
+
+        // Load saved theme
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeButton(savedTheme);
+        });
+
+        // Bill Calculation
+        function calculateBill() {
+            const consumerType = document.getElementById('consumerType').value;
+            const units = parseFloat(document.getElementById('units').value);
+            const load = parseFloat(document.getElementById('load').value);
+
+            if (!consumerType || !units || !load) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            let energyCost = 0;
+            let demandChargeRate = 42; // Default demand charge per kW
+
+            // Residential tiered pricing
+            if (consumerType === 'residential') {
+                if (units <= 50) {
+                    energyCost = units * 4.63;
+                } else if (units <= 75) {
+                    energyCost = (50 * 4.63) + ((units - 50) * 5.68);
+                } else if (units <= 200) {
+                    energyCost = (50 * 4.63) + (25 * 5.68) + ((units - 75) * 7.20);
+                } else if (units <= 300) {
+                    energyCost = (50 * 4.63) + (25 * 5.68) + (125 * 7.20) + ((units - 200) * 8.95);
+                } else if (units <= 400) {
+                    energyCost = (50 * 4.63) + (25 * 5.68) + (125 * 7.20) + (100 * 8.95) + ((units - 300) * 10.57);
+                } else if (units <= 600) {
+                    energyCost = (50 * 4.63) + (25 * 5.68) + (125 * 7.20) + (100 * 8.95) + (100 * 10.57) + ((units - 400) * 13.35);
+                } else {
+                    energyCost = (50 * 4.63) + (25 * 5.68) + (125 * 7.20) + (100 * 8.95) + (100 * 10.57) + (200 * 13.35) + ((units - 600) * 14.61);
+                }
+            } else if (consumerType === 'commercial') {
+                energyCost = units * 10.50;
+                demandChargeRate = 65;
+            } else if (consumerType === 'industrial') {
+                energyCost = units * 8.75;
+                demandChargeRate = 55;
+            } else if (consumerType === 'agricultural') {
+                energyCost = units * 5.25;
+                demandChargeRate = 30;
+            }
+
+            const demandCharge = load * demandChargeRate;
+            const subtotal = energyCost + demandCharge;
+            const vat = subtotal * 0.05;
+            const totalBill = subtotal + vat;
+
+            // Display results
+            document.getElementById('energyCost').textContent = `৳${energyCost.toFixed(2)}`;
+            document.getElementById('demandCharge').textContent = `৳${demandCharge.toFixed(2)}`;
+            document.getElementById('vat').textContent = `৳${vat.toFixed(2)}`;
+            document.getElementById('totalBill').textContent = `৳${totalBill.toFixed(2)}`;
+            document.getElementById('result').classList.add('show');
+        }
+
+        function resetCalculator() {
+            document.getElementById('consumerType').value = '';
+            document.getElementById('units').value = '';
+            document.getElementById('load').value = '';
+            document.getElementById('result').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
