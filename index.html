@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Electricity Bill Calculator |</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400..800&display=swap" rel="stylesheet">
+    <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        :root {
+          --bg-primary: #050505;
+          --bg-secondary: #0a0a0a;
+          --text-primary: #ffffff;
+          --text-secondary: #a0a0a0;
+          --accent: #00ff88;
+          --accent-secondary: #00ccff;
+          --border: rgba(255, 255, 255, 0.08);
+          --glow: rgba(0, 255, 136, 0.3);
+        }
+
+        .app.light {
+          --bg-primary: #fafafa;
+          --bg-secondary: #ffffff;
+          --text-primary: #0a0a0a;
+          --text-secondary: #666666;
+          --accent: #00cc6a;
+          --accent-secondary: #0099cc;
+          --border: rgba(0, 0, 0, 0.08);
+          --glow: rgba(0, 204, 106, 0.2);
+        }
+
+        .app {
+          min-height: 100vh;
+          background: var(--bg-primary);
+          color: var(--text-primary);
+          font-family: 'Space Mono', monospace;
+          position: relative;
+          overflow-x: hidden;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Animated background grid */
+        .app::before {
+          content: '';
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-image: 
+            linear-gradient(var(--border) 1px, transparent 1px),
+            linear-gradient(90deg, var(--border) 1px, transparent 1px);
+          background-size: 50px 50px;
+          mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 30%, transparent 70%);
+          -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 30%, transparent 70%);
+          animation: gridMove 20s linear infinite;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        @keyframes gridMove {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(50px, 50px); }
+        }
+
+        /* Header */
+        header {
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          background: rgba(5, 5, 5, 0.8);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-bottom: 1px solid var(--border);
+          padding: 1.5rem 0;
+          animation: slideDown 0.6s ease-out;
+        }
+
+        .app.light header {
+          background: rgba(250, 250, 250, 0.8);
+        }
+
+        @keyframes slideDown {
+          from { transform: translateY(-100%); }
+          to { transform: translateY(0); }
+        }
+
+        nav {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 2rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .logo {
+          font-family: 'Syne', sans-serif;
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: var(--accent);
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .logo-icon {
+          width: 32px;
+          height: 32px;
+          background: var(--accent);
+          clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .nav-links {
+          display: flex;
+          gap: 2rem;
+          list-style: none;
+          align-items: center;
+        }
+
+        .nav-links a {
+          color: var(--text-secondary);
+          text-decoration: none;
+          font-size: 0.9rem;
+          font-weight: 400;
+          transition: color 0.3s ease;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .nav-links a:hover {
+          color: var(--accent);
+        }
+
+        .theme-toggle {
+          background: transparent;
+          border: 1px solid var(--border);
+          padding: 0.5rem 1rem;
+          cursor: pointer;
+          color: var(--text-primary);
+          font-family: 'Space Mono', monospace;
+          font-size: 0.85rem;
+          transition: all 0.3s ease;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .theme-toggle:hover {
+          border-color: var(--accent);
+          color: var(--accent);
+          box-shadow: 0 0 20px var(--glow);
+        }
+
+        /* Hero */
+        .hero {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 8rem 2rem 4rem;
+          text-align: center;
+          position: relative;
+          z-index: 1;
+          animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(50px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero h1 {
+          font-family: 'Syne', sans-serif;
+          font-size: 5rem;
+          font-weight: 800;
+          line-height: 1;
+          margin-bottom: 1.5rem;
+          text-transform: uppercase;
+          letter-spacing: -0.03em;
+          background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: fadeInScale 0.8s ease-out 0.4s both;
+        }
+
+        @keyframes fadeInScale {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .hero-subtitle {
+          font-size: 1.1rem;
+          color: var(--text-secondary);
+          max-width: 600px;
+          margin: 0 auto;
+          letter-spacing: 0.05em;
+          animation: fadeIn 0.8s ease-out 0.6s both;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        /* Calculator Card */
+        .calculator-container {
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 0 2rem 4rem;
+          position: relative;
+          z-index: 1;
+          animation: fadeInUp 0.8s ease-out 0.8s both;
+        }
+
+        .calculator-card {
+          background: var(--bg-secondary);
+          border: 1px solid var(--border);
+          padding: 3rem;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .calculator-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, var(--accent), transparent);
+          animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
+        .calculator-header {
+          margin-bottom: 2.5rem;
+        }
+
+        .calculator-header h2 {
+          font-family: 'Syne', sans-serif;
+          font-size: 2rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+          margin-bottom: 0.5rem;
+        }
+
+        .calculator-header p {
+          color: var(--text-secondary);
+          font-size: 0.9rem;
+        }
+
+        /* Form */
+        .form-group {
+          margin-bottom: 2rem;
+        }
+
+        .form-label {
+          display: block;
+          color: var(--accent);
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          margin-bottom: 0.75rem;
+        }
+
+        .form-input, .form-select {
+          width: 100%;
+          background: transparent;
+          border: 1px solid var(--border);
+          color: var(--text-primary);
+          padding: 1rem;
+          font-family: 'Space Mono', monospace;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+          outline: none;
+        }
+
+        .form-input:focus, .form-select:focus {
+          border-color: var(--accent);
+          box-shadow: 0 0 0 1px var(--accent), 0 0 20px var(--glow);
+        }
+
+        .form-select {
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2300ff88' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 1rem center;
+          padding-right: 3rem;
+        }
+
+        /* Buttons */
+        .button-group {
+          display: grid;
+          grid-template-columns: 1fr 2fr;
+          gap: 1rem;
+          margin-top: 2.5rem;
+        }
+
+        .btn {
+          padding: 1rem 2rem;
+          font-family: 'Space Mono', monospace;
+          font-size: 0.9rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          border: 1px solid var(--border);
+          background: transparent;
+          color: var(--text-primary);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .btn::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+          left: 100%;
+        }
+
+        .btn-reset:hover {
+          border-color: var(--text-secondary);
+        }
+
+        .btn-calculate {
+          background: var(--accent);
+          border-color: var(--accent);
+          color: #000;
+          font-weight: 700;
+        }
+
+        .btn-calculate:hover {
+          box-shadow: 0 0 30px var(--glow);
+          transform: translateY(-2px);
+        }
+
+        .btn-calculate:active {
+          transform: translateY(0);
+        }
+
+        .btn-calculate:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        /* Result Card */
+        .result-card {
+          margin-top: 3rem;
+          background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 204, 255, 0.1));
+          border: 1px solid var(--accent);
+          padding: 2.5rem;
+          position: relative;
+          overflow: hidden;
+          display: none;
+          animation: slideInScale 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .result-card.show {
+          display: block;
+        }
+
+        @keyframes slideInScale {
+          from { opacity: 0; transform: translateY(30px) scale(0.9); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .result-card::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          right: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
+          animation: resultPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes resultPulse {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .result-header {
+          position: relative;
+          z-index: 1;
+          margin-bottom: 2rem;
+        }
+
+        .result-header h3 {
+          font-family: 'Syne', sans-serif;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--accent);
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+        }
+
+        .breakdown {
+          position: relative;
+          z-index: 1;
+        }
+
+        .breakdown-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 1rem 0;
+          border-bottom: 1px solid var(--border);
+          font-size: 1rem;
+          opacity: 0;
+          animation: slideInLeft 0.5s ease-out forwards;
+        }
+
+        .breakdown-item:nth-child(1) { animation-delay: 0.1s; }
+        .breakdown-item:nth-child(2) { animation-delay: 0.2s; }
+        .breakdown-item:nth-child(3) { animation-delay: 0.3s; }
+        .breakdown-item:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes slideInLeft {
+          from { opacity: 0; transform: translateX(-20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+
+        .breakdown-item:last-child {
+          border-bottom: none;
+          border-top: 2px solid var(--accent);
+          padding-top: 1.5rem;
+          margin-top: 1rem;
+        }
+
+        .breakdown-item .label {
+          color: var(--text-secondary);
+          text-transform: uppercase;
+          font-size: 0.85rem;
+          letter-spacing: 0.05em;
+        }
+
+        .breakdown-item .value {
+          font-weight: 700;
+          color: var(--accent);
+          font-size: 1.1rem;
+        }
+
+        .breakdown-item:last-child .value {
+          font-size: 1.8rem;
+        }
+
+        /* Info Section */
+        .info-section {
+          max-width: 1200px;
+          margin: 6rem auto;
+          padding: 0 2rem;
+          position: relative;
+          z-index: 1;
+        }
+
+        .info-header {
+          text-align: center;
+          margin-bottom: 4rem;
+        }
+
+        .info-header h2 {
+          font-family: 'Syne', sans-serif;
+          font-size: 3rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: -0.03em;
+          background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          margin-bottom: 1rem;
+        }
+
+        .info-header p {
+          color: var(--text-secondary);
+          font-size: 1rem;
+          max-width: 600px;
+          margin: 0 auto;
+        }
+
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 2rem;
+        }
+
+        .info-card {
+          background: var(--bg-secondary);
+          border: 1px solid var(--border);
+          padding: 2.5rem;
+          position: relative;
+          transition: all 0.3s ease;
+        }
+
+        .info-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 3px;
+          height: 0;
+          background: var(--accent);
+          transition: height 0.3s ease;
+        }
+
+        .info-card:hover {
+          border-color: var(--accent);
+          transform: translateY(-5px);
+        }
+
+        .info-card:hover::before {
+          height: 100%;
+        }
+
+        .info-card-icon {
+          font-size: 2.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .info-card h3 {
+          font-family: 'Syne', sans-serif;
+          font-size: 1.3rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin-bottom: 1rem;
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+        }
+
+        .info-card p {
+          color: var(--text-secondary);
+          line-height: 1.8;
+          margin-bottom: 1.5rem;
+          font-size: 0.9rem;
+        }
+
+        .rate-badge {
+          display: inline-block;
+          background: var(--accent);
+          color: #000;
+          padding: 0.5rem 1rem;
+          font-weight: 700;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        /* Instructions */
+        .instructions {
+          max-width: 900px;
+          margin: 6rem auto;
+          padding: 0 2rem;
+          position: relative;
+          z-index: 1;
+        }
+
+        .instructions h2 {
+          font-family: 'Syne', sans-serif;
+          font-size: 2rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin-bottom: 2rem;
+          text-transform: uppercase;
+          letter-spacing: -0.02em;
+        }
+
+        .instructions ol {
+          background: var(--bg-secondary);
+          border: 1px solid var(--border);
+          padding: 2.5rem;
+          counter-reset: instruction;
+        }
+
+        .instructions li {
+          color: var(--text-secondary);
+          margin-bottom: 1.5rem;
+          line-height: 1.8;
+          padding-left: 3rem;
+          position: relative;
+          counter-increment: instruction;
+        }
+
+        .instructions li::before {
+          content: counter(instruction, decimal-leading-zero);
+          position: absolute;
+          left: 0;
+          color: var(--accent);
+          font-weight: 700;
+          font-size: 1.2rem;
+        }
+
+        /* Footer */
+        footer {
+          background: var(--bg-secondary);
+          border-top: 1px solid var(--border);
+          padding: 4rem 2rem 2rem;
+          margin-top: 8rem;
+          position: relative;
+          z-index: 1;
+        }
+
+        .footer-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 3rem;
+        }
+
+        .footer-section h4 {
+          font-family: 'Syne', sans-serif;
+          font-weight: 700;
+          color: var(--accent);
+          margin-bottom: 1.5rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-size: 0.9rem;
+        }
+
+        .footer-section ul {
+          list-style: none;
+        }
+
+        .footer-section a {
+          color: var(--text-secondary);
+          text-decoration: none;
+          display: block;
+          margin-bottom: 0.75rem;
+          font-size: 0.9rem;
+          transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+          color: var(--accent);
+        }
+
+        .copyright {
+          text-align: center;
+          margin-top: 3rem;
+          padding-top: 2rem;
+          border-top: 1px solid var(--border);
+          color: var(--text-secondary);
+          font-size: 0.85rem;
+        }
+
+        /* Loading spinner */
+        .spinner {
+          width: 20px;
+          height: 20px;
+          border: 2px solid transparent;
+          border-top-color: #000;
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+          display: inline-block;
+          margin-left: 0.5rem;
+          vertical-align: middle;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+          display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+          .nav-links {
+            display: none;
+          }
+
+          .hero h1 {
+            font-size: 3rem;
+          }
+
+          .calculator-card {
+            padding: 2rem;
+          }
+
+          .button-group {
+            grid-template-columns: 1fr;
+          }
+
+          .info-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .info-header h2 {
+            font-size: 2rem;
+          }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="app dark">
+        <!-- Header -->
+        <header>
+            <nav>
+                <div class="logo">
+                    <div class="logo-icon"></div>
+                    BILL CALC
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#calculator">Calculator</a></li>
+                    <li><a href="#rates">Rates</a></li>
+                </ul>
+                <button class="theme-toggle" id="themeToggle">☾ DARK</button>
+            </nav>
+        </header>
+
+        <!-- Hero -->
+        <section class="hero" id="home">
+            <h1>POWER BILL<br>CALCULATOR</h1>
+            <p class="hero-subtitle">Calculate your electricity bill with precision • 2025 rates • Fast & accurate</p>
+        </section>
+
+        <!-- Calculator -->
+        <section class="calculator-container" id="calculator">
+            <div class="calculator-card">
+                <div class="calculator-header">
+                    <h2>Calculate Your Bill</h2>
+                    <p>Enter your consumption details below</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Consumer Type</label>
+                    <select class="form-select" id="consumerType">
+                        <option value="">Select Type</option>
+                        <option value="residential">Residential (LT-A)</option>
+                        <option value="commercial">Commercial (LT-C)</option>
+                        <option value="industrial">Industrial (LT-B)</option>
+                        <option value="agricultural">Agricultural</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Units Consumed (kWh)</label>
+                    <input type="number" class="form-input" id="units" placeholder="Enter units" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Sanctioned Load (kW)</label>
+                    <input type="number" class="form-input" id="load" placeholder="Enter load" min="0" step="0.01">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-reset" id="resetBtn">RESET</button>
+                    <button class="btn btn-calculate" id="calculateBtn">
+                        <span id="btnText">CALCULATE BILL</span>
+                        <span class="spinner hidden" id="spinner"></span>
+                    </button>
+                </div>
+
+                <div class="result-card" id="resultCard">
+                    <div class="result-header">
+                        <h3>Bill Breakdown</h3>
+                    </div>
+                    <div class="breakdown">
+                        <div class="breakdown-item">
+                            <span class="label">Energy Cost</span>
+                            <span class="value" id="energyCost">৳0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="label">Demand Charge</span>
+                            <span class="value" id="demandCharge">৳0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="label">VAT (5%)</span>
+                            <span class="value" id="vat">৳0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="label">Total Bill</span>
+                            <span class="value" id="totalBill">৳0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Instructions -->
+        <section class="instructions">
+            <h2>How It Works</h2>
+            <ol>
+                <li>Get your current meter reading in units (kWh)</li>
+                <li>Subtract previous month's reading from current reading</li>
+                <li>Select your consumer type from the dropdown</li>
+                <li>Enter the units consumed and your sanctioned load</li>
+                <li>Click Calculate Bill to see your detailed breakdown</li>
+            </ol>
+        </section>
+
+        <!-- Info Cards -->
+        <section class="info-section" id="rates">
+            <div class="info-header">
+                <h2>Rate Overview</h2>
+                <p>Understanding the tiered pricing structure</p>
+            </div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-card-icon">💡</div>
+                    <h3>Low Usage</h3>
+                    <p>Perfect for small households with minimal consumption. The lifeline rate ensures affordability.</p>
+                    <div class="rate-badge">৳4.63 / UNIT</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-icon">🏠</div>
+                    <h3>Medium Usage</h3>
+                    <p>Ideal for average households with standard appliances and moderate consumption.</p>
+                    <div class="rate-badge">৳7.20 / UNIT</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-icon">⚡</div>
+                    <h3>High Usage</h3>
+                    <p>For larger households or commercial use with air conditioning and high-power appliances.</p>
+                    <div class="rate-badge">৳14.61 / UNIT</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#calculator">Calculator</a></li>
+                        <li><a href="#rates">Rates</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Tariff Info</a></li>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Energy Tips</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><a href="mailto:selut@tuta.io">Contact</a></li>
+                        <li><a href="#">Terms</a></li>
+                        <li><a href="#">Privacy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                © 2026 Your Bill Calculator. All rights reserved.
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const app = document.getElementById('app');
+
+        function setTheme(theme) {
+            app.className = `app ${theme}`;
+            themeToggle.textContent = theme === 'dark' ? '☀ LIGHT' : '☾ DARK';
+            localStorage.setItem('theme', theme);
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = app.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+
+        // Calculator Logic
+        const consumerTypeEl = document.getElementById('consumerType');
+        const unitsEl = document.getElementById('units');
+        const loadEl = document.getElementById('load');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const resultCard = document.getElementById('resultCard');
+        const btnText = document.getElementById('btnText');
+        const spinner = document.getElementById('spinner');
+
+        function calculateBill() {
+            const consumerType = consumerTypeEl.value;
+            const units = parseFloat(unitsEl.value);
+            const load = parseFloat(loadEl.value);
+
+            if (!consumerType || !units || !load) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Show loading state
+            calculateBtn.disabled = true;
+            btnText.textContent = 'CALCULATING';
+            spinner.classList.remove('hidden');
+
+            setTimeout(() => {
+                let energyCost = 0;
+                let demandChargeRate = 42;
+
+                if (consumerType === 'residential') {
+                    if (units <= 50) {
+                        energyCost = units * 4.63;
+                    } else if (units <= 75) {
+                        energyCost = (50 * 4.63) + ((units - 50) * 5.68);
+                    } else if (units <= 200) {
+                        energyCost = (50 * 4.63) + (25 * 5.68) + ((units - 75) * 7.20);
+                    } else if (units <= 300) {
+                        energyCost = (50 * 4.63) + (25 * 5.68) + (125 * 7.20) + ((units - 200) * 8.95);
+                    } else if (units <= 400) {
+                        energyCost = (50 * 4.63) + (25 * 5.68) + (125 * 7.20) + (100 * 8.95) + ((units - 300) * 10.57);
+                    } else if (units <= 600) {
+                        energyCost = (50 * 4.63) + (25 * 5.68) + (125 * 7.20) + (100 * 8.95) + (100 * 10.57) + ((units - 400) * 13.35);
+                    } else {
+                        energyCost = (50 * 4.63) + (25 * 5.68) + (125 * 7.20) + (100 * 8.95) + (100 * 10.57) + (200 * 13.35) + ((units - 600) * 14.61);
+                    }
+                } else if (consumerType === 'commercial') {
+                    energyCost = units * 10.50;
+                    demandChargeRate = 65;
+                } else if (consumerType === 'industrial') {
+                    energyCost = units * 8.75;
+                    demandChargeRate = 55;
+                } else if (consumerType === 'agricultural') {
+                    energyCost = units * 5.25;
+                    demandChargeRate = 30;
+                }
+
+                const demandCharge = load * demandChargeRate;
+                const subtotal = energyCost + demandCharge;
+                const vat = subtotal * 0.05;
+                const totalBill = subtotal + vat;
+
+                // Update UI
+                document.getElementById('energyCost').textContent = `৳${energyCost.toFixed(2)}`;
+                document.getElementById('demandCharge').textContent = `৳${demandCharge.toFixed(2)}`;
+                document.getElementById('vat').textContent = `৳${vat.toFixed(2)}`;
+                document.getElementById('totalBill').textContent = `৳${totalBill.toFixed(2)}`;
+
+                resultCard.classList.add('show');
+
+                // Reset button state
+                calculateBtn.disabled = false;
+                btnText.textContent = 'CALCULATE BILL';
+                spinner.classList.add('hidden');
+
+                // Scroll to result
+                resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 800);
+        }
+
+        function resetCalculator() {
+            consumerTypeEl.value = '';
+            unitsEl.value = '';
+            loadEl.value = '';
+            resultCard.classList.remove('show');
+        }
+
+        calculateBtn.addEventListener('click', calculateBill);
+        resetBtn.addEventListener('click', resetCalculator);
+
+        // Allow Enter key to calculate
+        [consumerTypeEl, unitsEl, loadEl].forEach(el => {
+            el.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') calculateBill();
+            });
+        });
+    </script>
+</body>
+</html>
